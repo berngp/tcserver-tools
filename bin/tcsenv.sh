@@ -16,13 +16,17 @@
 # limitations under the License.
 
 # -----------------------------------------------------------------------------
-# Start Script for the CATALINA Server using the Tomcat Server Tools project.
+#  Loads a an env.sh file that can override system variables, 
+#  It will look for them in 
+#   1) $CATALINA_BASE/bin/env.sh
+#   2) $CATALINA_INSTANCE/bin/env.sh
+#   3) $PRGDIR/env.sh where PGRDIR is the home dir of this shell
 # -----------------------------------------------------------------------------
 
 # resolve links - $0 may be a softlink
 PRG="$0"
 
-while [ -h "$PRG" ] ; do
+while [ -h "$PRG" ]; do
   ls=`ls -ld "$PRG"`
   link=`expr "$ls" : '.*-> \(.*\)$'`
   if expr "$link" : '/.*' > /dev/null; then
@@ -31,14 +35,22 @@ while [ -h "$PRG" ] ; do
     PRG=`dirname "$PRG"`/"$link"
   fi
 done
- 
-PRGDIR=`dirname "$PRG"`
-EXECUTABLE=catalina.sh
 
-if [ ! -x "$PRGDIR"/"$EXECUTABLE" ]; then
-	echo "Cannot find $PRGDIR/$EXECUTABLE"
-	echo "This file is needed to run this program"
-	exit 1
+# Get standard environment variables
+PRGDIR=`dirname "$PRG"`
+
+# Only set CATALINA_INSTANCE if not already set
+if   [ -f "$CATALINA_BASE/bin/env.sh" ] ; then
+	TCS_TOOLS_ENV_SH="$CATALINA_BASE/bin/env.sh"
+elif [ -f "$CATALINA_INSTANCE/bin/env.sh" ] ; then
+	TCS_TOOLS_ENV_SH="$CATALINA_INSTANCE/bin/env.sh"
+else 
+	TCS_TOOLS_ENV_SH="$PRGDIR/env.sh"
 fi
 
-exec "$PRGDIR"/"$EXECUTABLE" start "$@"
+if [ -x "$TCS_TOOLS_ENV_SH" ]; then
+	. "$TCS_TOOLS_ENV_SH"
+else
+	echo "Info: No env.sh found or can't execute."
+fi
+
