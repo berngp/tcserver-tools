@@ -1,0 +1,50 @@
+buildscript {
+  repositories {    
+    mavenCentral()
+  }
+  dependencies {
+  }
+}
+/** */
+//apply plugin: 'java'
+//apply plugin: 'groovy'
+/** Project managment, IDEs, and deploy     */
+//apply plugin: 'eclipse'
+apply plugin: 'maven'
+/** Code quality and reporting     */
+//apply plugin: 'code-quality'
+//apply plugin: 'project-report'
+
+version = '0.0.1'
+archivesBaseName = 'tcserver-tools'
+artifact="${name}-${version}"
+
+//sourceCompatibility = '1.6'
+//targetCompatibility = '1.5'
+
+task clean(type:Delete){
+  delete 'target'
+  delete 'dist'
+}
+
+task docs {
+    description = 'Builds the documentation'
+}
+
+task dists {
+  dependsOn docs
+
+  ant.tar(destfile: "dist/${artifact}.tar") {
+        fileset(dir: 'src') {
+            exclude(name: '**.swp')
+            exclude(name: '**.~')
+        }
+  }
+  ant.gzip(destfile: "dist/${artifact}.tar.gz", src:"dist/${artifact}.tar")
+}
+
+dists {
+  description = 'Builds the distribution'
+  group = 'build'
+
+}
