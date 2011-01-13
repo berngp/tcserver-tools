@@ -15,34 +15,47 @@ apply plugin: 'maven'
 //apply plugin: 'code-quality'
 //apply plugin: 'project-report'
 
-version = '0.0.1'
+version = '0.0.1-SNAPSHOT'
 archivesBaseName = 'tcserver-tools'
 artifact="${name}-${version}"
-
 //sourceCompatibility = '1.6'
 //targetCompatibility = '1.5'
 
 task clean(type:Delete){
-  delete 'target'
+  delete 'build'
   delete 'dist'
 }
 
+/** */
 task docs {
     description = 'Builds the documentation'
 }
-
+task distCopy() {
+    _path="build/${artifact}"
+    ant.copy(todir: "$_path/bin" ){
+      ant.fileset( dir: "src/main/bin" )//, fileMode:'0555')  
+    }
+    ant.copy(todir: "$_path/templates"){
+      ant.fileset( dir: "src/main/templates")//, fileMode:'0444', dirMode:'0555')  
+    }
+    ant.copy(todir: "$_path/samples"){
+      ant.fileset( dir:"src/main/samples" )//, fileMode:'0555')  
+    }
+    ant.fixcrlf( srcdir:_path, includes:"**/*.sh", eol:"lf", eof:"remove") 
+    ant.chmod( dir:_path, perm:"555", includes:"**/*.sh")
+}
+/** */
 task dists {
+  dependsOn distCopy
   dependsOn docs
 
-  ant.tar(destfile: "dist/${artifact}.tar") {
-        fileset(dir: 'src') {
-            exclude(name: '**.swp')
-            exclude(name: '**.~')
-        }
+  ant.tar(destfile: "dist/${artifact}.tar" ) {
+    ant.tarfileset(dir: "build/${artifact}", prefix:"${artifact}")
   }
   ant.gzip(destfile: "dist/${artifact}.tar.gz", src:"dist/${artifact}.tar")
 }
 
+/** */
 dists {
   description = 'Builds the distribution'
   group = 'build'
