@@ -56,6 +56,12 @@ while [ -h "$PRG" ]; do
   fi
 done
 
+# Tomcat's Bugzilla 37848: When no TTY is available, don't output to console
+have_tty=0
+if [ "`tty`" != "not a tty" ]; then
+    have_tty=1
+fi
+
 # Get standard environment variables
 PRGDIR=`dirname "$PRG"`
 # Only set CATALINA_INSTANCE if not already set
@@ -77,25 +83,6 @@ TCS_ENV_EXECUTABLE="$PRGDIR/tcsenv.sh"
 test ! -x "$TCS_ENV_EXECUTABLE" && (echo "Unable to find tcsenv.sh"; exit 1)
 . "$TCS_ENV_EXECUTABLE"
 
-if [ -z "$CATALINA_HOME" ] ; then
-  export CATALINA_HOME="$CATALINA_BASE"
-fi
-
-if [ -z "$CATALINA_OUT" ] ; then
-  export CATALINA_OUT="$CATALINA_INSTANCE"/logs/catalina.out
-fi
-
-if [ -z "$CATALINA_TMPDIR" ] ; then
-  # Define the java.io.tmpdir to use for Catalina
-  export CATALINA_TMPDIR="$CATALINA_INSTANCE"/temp
-fi
-
-# Bugzilla 37848: When no TTY is available, don't output to console
-have_tty=0
-if [ "`tty`" != "not a tty" ]; then
-    have_tty=1
-fi
-
 #------------------------------------------------------------------
 # When setting cygwin support add the changes of the paths bellow..
 #   |
@@ -103,15 +90,6 @@ fi
 # -----
 #------------------------------------------------------------------
 
-#Setup CATALINA_OPTS according to catalina.properties if it exist
-if [ -r "$CATALINA_INSTANCE/tcs-instance.properties" ]; then
-	_OPTS=`grep -v '^[\s*#]' $CATALINA_INSTANCE/tcs-instance.properties | awk '{printf "-D%s ", $1}'` 
-	export CATALINA_OPTS="$CATALINA_OPTS $_OPTS"
-fi
-
-if [ -z "$CATALINA_PID" ]; then
-  export CATALINA_PID="$CATALINA_INSTANCE/pid"
-fi
 
 EXECUTABLE="$CATALINA_HOME/bin/catalina.sh"
 # Check that target executable exists
@@ -126,20 +104,24 @@ fi
 # Bugzilla 37848: only output this if we have a TTY
 if [ $have_tty -eq 1 ]; then
 	echo "CATALINA INSTANCE MANAGER...."
-	echo "Using CATALINA_INSTANCE:	$CATALINA_INSTANCE"
-	echo "Using CATALINA_BASE:   	$CATALINA_BASE"
-	test -n "$CATALINA_HOME"	 && (echo "Using CATALINA_HOME:   	$CATALINA_HOME")
-	test -n "$CATALINA_TMPDIR"	 && (echo "Using CATALINA_TMPDIR: 	$CATALINA_TMPDIR")
-	test -n "$CATALINA_OPTS"	 && (echo "Using CATALINA_OPTS: 	$CATALINA_OPTS")
-	if [ "$1" = "debug" ] ; then
-	   echo "Using JAVA_HOME:       $JAVA_HOME"
-	   echo "Using JRE_HOME:        $JRE_HOME"
-	fi
+	echo "Using CATALINA_INSTANCE:  $CATALINA_INSTANCE"
+	echo "Using CATALINA_BASE:      $CATALINA_BASE"
+	#echo "Using CATALINA_HOME:   	$CATALINA_HOME"
+	#echo "Using CATALINA_TMPDIR: 	$CATALINA_TMPDIR"
+	echo "Using CATALINA_OPTS:      $CATALINA_OPTS"
+	echo "Using JAVA_OPTS:          $JAVA_OPTS"
+	echo ""
+	#if [ "$1" = "debug" ] ; then
+	#   echo "Using JAVA_HOME:       $JAVA_HOME"
+	#   echo "Using JRE_HOME:        $JRE_HOME"
+	#fi
 	test -n "$CLASSPATH"		 && (echo "Using CLASSPATH:		$CLASSPATH")
 	if [ ! -z "$CATALINA_PID" ]; then
 	    echo "Using CATALINA_PID:    $CATALINA_PID"
 	fi
 fi
 
-echo "$EXECUTABLE "."$@"
-exec "$EXECUTABLE" "$@"
+cmd="$EXECUTABLE $@"
+echo $cmd 
+eval $cmd 
+exit $?

@@ -40,7 +40,7 @@ done
 PRGDIR=`dirname "$PRG"`
 
 # Only set CATALINA_INSTANCE if not already set
-if   [ -f "$CATALINA_BASE/bin/env.sh" ] ; then
+if   [ -x "$CATALINA_BASE/bin/env.sh" ] ; then
 	TCS_TOOLS_ENV_SH="$CATALINA_BASE/bin/env.sh"
 elif [ -f "$CATALINA_INSTANCE/bin/env.sh" ] ; then
 	TCS_TOOLS_ENV_SH="$CATALINA_INSTANCE/bin/env.sh"
@@ -53,4 +53,36 @@ if [ -x "$TCS_TOOLS_ENV_SH" ]; then
 else
 	echo "Info: No env.sh found or can't execute."
 fi
+
+
+if [ -z "$CATALINA_HOME" ] ; then
+  export CATALINA_HOME="$CATALINA_BASE"
+fi
+
+if [ -z "$CATALINA_OUT" ] ; then
+  export CATALINA_OUT="$CATALINA_INSTANCE"/logs/catalina.out
+fi
+
+if [ -z "$CATALINA_TMPDIR" ] ; then
+  # Define the java.io.tmpdir to use for Catalina
+  export CATALINA_TMPDIR="$CATALINA_INSTANCE"/temp
+fi
+
+#Extract information from the tcs-instance conf. properties file.
+if [ -r "$CATALINA_INSTANCE/tcsi.properties" ]; then
+	_OPTS=`grep -v '^[\s*#]' $CATALINA_INSTANCE/tcsi.properties | awk '{printf "-D%s ", $1}'` 
+	JAVA_OPTS="$JAVA_OPTS $_OPTS"
+	#---------------------------
+	JVM_ROUTE=`grep -e '^[\s*jvmRoute\s*=]' $CATALINA_INSTANCE/tcsi.properties | sed 's/\s*jvmRoute\s*=\s*//g'` 
+	if [ -z "$JVM_ROUTE" ]; then
+		JVM_ROUTE=`echo "$CATALINA_INSTANCE" | sed 's/.*\/\(.*\)$/\1/'`
+		JAVA_OPTS="-DjvmRoute=$JVM_ROUTE $JAVA_OPTS"
+	fi
+	export JAVA_OPTS
+fi
+
+#Override PID
+export CATALINA_PID="$CATALINA_INSTANCE/pid"
+
+
 
