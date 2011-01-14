@@ -124,7 +124,7 @@
         <!-- Access log processes all example.
              Documentation at: /docs/config/valve.html -->
 	<Valve className="org.apache.catalina.valves.AccessLogValve" directory="logs"
-		prefix="${jvmRoute}_access_log." suffix=".txt" pattern="common" resolveHosts="false"/>
+		prefix="${jvmRoute}_access_log." suffix=".log" pattern="common" resolveHosts="false"/>
         
       </Host>
     </Engine>
