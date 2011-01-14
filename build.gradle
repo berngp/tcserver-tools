@@ -33,13 +33,16 @@ task docs {
 task distCopy() {
     _path="build/${artifact}"
     ant.copy(todir: "$_path/bin" ){
-      ant.fileset( dir: "src/main/bin" )//, fileMode:'0555')  
+      ant.fileset( dir: "src/main/bin" )
     }
     ant.copy(todir: "$_path/templates"){
-      ant.fileset( dir: "src/main/templates")//, fileMode:'0444', dirMode:'0555')  
+      ant.fileset( dir: "src/main/templates")
     }
     ant.copy(todir: "$_path/samples"){
-      ant.fileset( dir:"src/main/samples" )//, fileMode:'0555')  
+      ant.fileset( dir:"src/main/samples" ){
+	exclude( name:"**/*.log" )
+	exclude( name:"**/*.out" )
+      }
     }
     ant.fixcrlf( srcdir:_path, includes:"**/*.sh", eol:"lf", eof:"remove") 
     ant.chmod( dir:_path, perm:"555", includes:"**/*.sh")
