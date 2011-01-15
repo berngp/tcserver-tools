@@ -52,8 +52,8 @@ task distCopy() {
       }
     }
     ant.fixcrlf( srcdir:buildArtifact, includes:"**/*.sh", eol:"lf", eof:"remove") 
-    ant.chmod( dir:buildArtifact, perm:"444", excludes:"**/*.sh")
-    ant.chmod( dir:buildArtifact, perm:"555", includes:"**/*.sh")
+    ant.chmod( dir:buildArtifact, perm:"644", excludes:"**/*.sh")
+    ant.chmod( dir:"$buildArtifact/bin", perm:"755", includes:"**/*.sh")
 }
 /** */
 task dists {
