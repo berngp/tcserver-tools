@@ -1,2 +1,2 @@
 #!/bin/sh
-../../bin/tcsgroup . start
+../../bin/tcsgroup.sh . start

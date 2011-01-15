@@ -62,27 +62,13 @@ if [ "$1" = "-v" ]; then
 	vf=1
 	shift
 fi
+
 # Get CATALINA_GROUP
 if [ ! -d "$1" ]; then
 	echo "Argument $1 must be a directory that points to the TC Group path."
-	echo "Usage: tcsgroup /path/to/group (commands ... )"
 	exit 1
 else
 	export CATALINA_GROUP=`cd "$1" > /dev/null; pwd`
-	shift
-fi
-#Seeing if the command shoulb be applied to a single instance.
-if [ "$1" = "-i" ]; then
-	if [ -z "$2"  -o  ! -d "$CATALINA_GROUP/$2"  ]; then
-		echo "The -i (instance) option should be followed by the instance name "
-		echo "and such name should make reference to a directory in the TC Group path."
-		echo "Usage: tcsgroup /path/to/group/base -i yourInstanceName ( commands ... )"
-		echo 
-		exit 1
-	else
-		INSTANCE="$2"
-		shift 2
-	fi
 fi
 
 # Load Group's Env if available 
@@ -118,104 +104,101 @@ if [ ! -x "$TCSMAIN_SH" ]; then
 fi
 
 # ----- Execute The Requested Command -----------------------------------------
-applyTo() {
-	echo ""
-	echo "------------------------------------------------"
-	echo "`date -R`"
-	echo "$1 $2 ..."
-	cmd="$TCSMAIN_SH $CATALINA_GROUP/$1 $2 $3"
-	echo "> [$cmd]"
-	eval $cmd
-	echo "$1 $2 done." 
-	echo "------------------------------------------------"
-	echo "" 
+applyToGroup() {
+	for instance in $CATALINA_GROUPS
+	do
+		echo ""
+		echo "------------------------------------------------"
+		echo "`date -R`"
+		echo "$instance $1 ..."
+		cmd="$TCSMAIN_SH $CATALINA_GROUP/$instance $1 $2"
+		echo "> [$cmd]"
+		eval $cmd
+		echo "$instance $1 done." 
+		echo "------------------------------------------------"
+		echo "" 
+	done
 }
 
-removeIn() {
-	if [ -f "$CATALINA_GROUP/$1/$2" ]; then
-		echo ""
-		echo "rm $1/$2 ..."
-		eval \"rm\" \"$CATALINA_GROUP/$1/$2\" 
-		echo "$1 $2 done." 
-		echo ""
-	fi
-}
-
-statusOf() {
-	if [ -f "$CATALINA_GROUP/$1/pid" ]; then
-		_pid=`cat $CATALINA_GROUP/$1/pid`
-		echo ""
-		echo "status of $1..."
-		#eval \"ps\" \"uwww\" \"-p $_pid\"
-		eval ps uwww -p $_pid
-		echo ""
-	fi
-}
-
-pidStatsOn() {
-	if [ -f "$CATALINA_GROUP/$1/pid" ]; then
-		_pid=`cat $CATALINA_GROUP/$1/pid`
-		upsince=`ps -p $_pid | grep -v "TIME" | awk '{print $3}'`
-		if [ "$upsince" != "" ]; then
-			echo "$1 up $upsince"
-		else
-			echo "$1 down but pid file left."
+removeInGroup() {
+	for instance in $CATALINA_GROUPS
+	do
+		if [ -f "$CATALINA_GROUP/$instance/$1" ]; then
+			echo ""
+			echo "rm $instance/$1 ..."
+			eval \"rm\" \"$CATALINA_GROUP/$instance/$1\" 
+			echo "$instance $1 done." 
+			echo ""
 		fi
-	else
-		echo "$1 down"
-	fi
+	done
 }
 
-applyCmd() {
-	_f="$1"
-	_iinstance="$2"
+statusOfGroup() {
+	for instance in $CATALINA_GROUPS
+	do
+		if [ -f "$CATALINA_GROUP/$instance/pid" ]; then
+			_pid=`cat $CATALINA_GROUP/$instance/pid`
+			echo ""
+			echo "status of $instance ..."
+			#eval \"ps\" \"uwww\" \"-p $_pid\"
+			eval ps uwww -p $_pid
+			echo ""
+		fi
+	done
+}
+
+pidStasOnGroup() {
+	for instance in $CATALINA_GROUPS
+	do
+		if [ -f "$CATALINA_GROUP/$instance/pid" ]; then
+			_pid=`cat $CATALINA_GROUP/$instance/pid`
+			upsince=`ps -p $_pid | grep -v "TIME" | awk '{print $3}'`
+			if [ "$upsince" != "" ]; then
+				echo "$instance up $upsince"
+			else
+				echo "$instance down but pid file left."
+			fi
+		else
+			echo "$instance down"
+		fi
+	done
+}
+# ----- Execute The Requested Command -----------------------------------------
+if	[ "$2" = "debug" ] ; then
 	shift 2
-	if [ -n "$_iinstance" ]; then
-		eval \"$_f\" \"$_iinstance\" \"$@\"
-	else
-		for instance in $CATALINA_GROUPS
-		do
-			eval \"$_f\" \"$instance\" \"$@\"
-		done
-	fi
-} 
-#----- Execute The Requested Command -----------------------------------------
-if	[ "$1" = "debug" ] ; then
-	shift 
-	applyCmd "applyTo" "$INSTANCE" "debug $@"	
+	applyToGroup debug $@	
 
-elif 	[ "$1" = "run" ]; then
-	shift 
-	applyCmd "applyTo" "$INSTANCE" "run $@"	
+elif 	[ "$2" = "run" ]; then
+	shift 2
+	applyToGroup run $@	
 
-elif 	[ "$1" = "start" ] ; then
-	shift 
-	applyCmd "applyTo" "$INSTANCE" "start $@"	
+elif 	[ "$2" = "start" ] ; then
+	shift 2
+	applyToGroup start $@	
 
-elif 	[ "$1" = "stop" ] ; then
-	shift 
-	applyCmd "applyTo" "$INSTANCE" "stop $@"	
+elif 	[ "$2" = "stop" ] ; then
+	echo "$@"
+	shift 2
+	applyToGroup stop $@	
 
-elif 	[ "$1" = "version" ] ; then
-	shift 
-	applyCmd "applyTo" "$INSTANCE" "version $@"	
+elif 	[ "$2" = "version" ] ; then
+	shift 2
+	applyToGroup version $@	
 
-elif 	[ "$1" = "status" ] ; then
-	shift 
-	applyCmd "statusOf" "$INSTANCE"  
+elif 	[ "$2" = "status" ] ; then
+	shift 2
+	statusOfGroup
 
-elif 	[ "$1" = "up" ] ; then
-	shift 
-	applyCmd "pidStatsOn" "$INSTANCE"  
+elif 	[ "$2" = "up" ] ; then
+	shift 2
+	pidStasOnGroup 
 
-elif 	[ "$1" = "cleanstop" ] ; then
-	shift 
-	applyCmd "applyTo" "$INSTANCE" "stop -force $@"
-	applyCmd "removeIn" "$INSTANCE" "pid" 
+elif 	[ "$2" = "cleanstop" ] ; then
+	shift 2
+	applyToGroup stop "-force $@"
+	removeInGroup pid 
 else
 	echo "Usage: tcsgroup /path/to/group/base ( commands ... )"
-	echo "options:"
-	echo "  -i instanceName   Apply the command to only the given instance."
 	echo "commands:"
 	echo "  run               Start Catalina in the current window"
 	echo "  run -security     Start in the current window with security manager"

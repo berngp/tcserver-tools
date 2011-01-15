@@ -1,2 +1,2 @@
 #!/bin/sh
-../../bin/tcsgroup . "$@"
+../../bin/tcsgroup.sh . "$@"

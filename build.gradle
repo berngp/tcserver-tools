@@ -45,6 +45,7 @@ task distCopy() {
       }
     }
     ant.fixcrlf( srcdir:_path, includes:"**/*.sh", eol:"lf", eof:"remove") 
+    ant.chmod( dir:_path, perm:"444", excludes:"**/*.sh")
     ant.chmod( dir:_path, perm:"555", includes:"**/*.sh")
 }
 /** */

@@ -22,7 +22,7 @@
 #   2) $CATALINA_INSTANCE/bin/env.sh
 #   3) $PRGDIR/env.sh where PGRDIR is the home dir of this shell
 # -----------------------------------------------------------------------------
-
+echo "tcsenv.sh running...."
 # resolve links - $0 may be a softlink
 PRG="$0"
 
