@@ -18,10 +18,17 @@ apply plugin: 'maven'
 version = '0.0.1-SNAPSHOT'
 archivesBaseName = 'tcserver-tools'
 artifact="${name}-${version}"
+
+buildArtifact="build/${artifact}"
 //sourceCompatibility = '1.6'
 //targetCompatibility = '1.5'
 
 task clean(type:Delete){
+  //making sure we have the right privs.
+  if ( file(buildArtifact).exists() ){
+    ant.chmod( dir:buildArtifact, perm:"644", excludes:"**/*.sh")
+    ant.chmod( dir:buildArtifact, perm:"755", includes:"**/*.sh")
+  }
   delete 'build'
   delete 'dist'
 }
@@ -31,22 +38,22 @@ task docs {
     description = 'Builds the documentation'
 }
 task distCopy() {
-    _path="build/${artifact}"
-    ant.copy(todir: "$_path/bin" ){
+    file(buildArtifact).mkdirs()
+    ant.copy(todir: "$buildArtifact/bin" ){
       ant.fileset( dir: "src/main/bin" )
     }
-    ant.copy(todir: "$_path/templates"){
+    ant.copy(todir: "$buildArtifact/templates"){
       ant.fileset( dir: "src/main/templates")
     }
-    ant.copy(todir: "$_path/samples"){
+    ant.copy(todir: "$buildArtifact/samples"){
       ant.fileset( dir:"src/main/samples" ){
 	exclude( name:"**/*.log" )
 	exclude( name:"**/*.out" )
       }
     }
-    ant.fixcrlf( srcdir:_path, includes:"**/*.sh", eol:"lf", eof:"remove") 
-    ant.chmod( dir:_path, perm:"444", excludes:"**/*.sh")
-    ant.chmod( dir:_path, perm:"555", includes:"**/*.sh")
+    ant.fixcrlf( srcdir:buildArtifact, includes:"**/*.sh", eol:"lf", eof:"remove") 
+    ant.chmod( dir:buildArtifact, perm:"444", excludes:"**/*.sh")
+    ant.chmod( dir:buildArtifact, perm:"555", includes:"**/*.sh")
 }
 /** */
 task dists {
