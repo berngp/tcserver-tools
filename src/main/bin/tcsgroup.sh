@@ -194,6 +194,7 @@ elif 	[ "$1" = "start" ] ; then
 
 elif 	[ "$1" = "stop" ] ; then
 	shift 
+	export JAVA_OPTS=""
 	applyCmd "applyTo" "$INSTANCE" "stop $@"	
 
 elif 	[ "$1" = "version" ] ; then
@@ -210,6 +211,7 @@ elif 	[ "$1" = "up" ] ; then
 
 elif 	[ "$1" = "cleanstop" ] ; then
 	shift 
+	export JAVA_OPTS=""
 	applyCmd "applyTo" "$INSTANCE" "stop -force $@"
 	applyCmd "removeIn" "$INSTANCE" "pid" 
 else
