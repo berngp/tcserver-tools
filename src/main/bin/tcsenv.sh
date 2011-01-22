@@ -67,7 +67,9 @@ if [ -z "$CATALINA_TMPDIR" ] ; then
   # Define the java.io.tmpdir to use for Catalina
   export CATALINA_TMPDIR="$CATALINA_INSTANCE"/temp
 fi
-
+#Setup the catalina.instance name for the JVM OPTS
+CATALINA_INSTANCE_D=`echo "$CATALINA_INSTANCE" | sed 's/.*\/\(.*\)$/\1/'`
+JAVA_OPTS="$JAVA_OPTS -Dcatalina.instance=$CATALINA_INSTANCE_D"
 #Extract information from the tcs-instance conf. properties file.
 if [ -r "$CATALINA_INSTANCE/tcsi.properties" ]; then
 	if [ $1 = 'stop'   ] ; then
@@ -82,8 +84,7 @@ if [ -r "$CATALINA_INSTANCE/tcsi.properties" ]; then
 		if [ -z "$JVM_ROUTE_GROUP" ]; then
 			JVM_ROUTE_GROUP="`( cd $CATALINA_GROUP ; pwd ) | sed 's/\//\./g' | sed 's/\.\(.*\)$/\1/'`"
 		fi
-		JVM_ROUTE=`echo "$CATALINA_INSTANCE" | sed 's/.*\/\(.*\)$/\1/'`
-		JAVA_OPTS="-DjvmRoute=`hostname`.$JVM_ROUTE_GROUP.$JVM_ROUTE $JAVA_OPTS"
+		JAVA_OPTS="-DjvmRoute=`hostname`.$JVM_ROUTE_GROUP.$CATALINA_INSTANCE_D $JAVA_OPTS"
 	fi
 	export JAVA_OPTS
 fi
