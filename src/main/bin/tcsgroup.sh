@@ -62,6 +62,7 @@ if [ "$1" = "-v" ]; then
 	vf=1
 	shift
 fi
+
 # Get CATALINA_GROUP
 if [ ! -d "$1" ]; then
 	echo "Argument $1 must be a directory that points to the TC Group path."
@@ -173,13 +174,13 @@ applyCmd() {
 	if [ -n "$_iinstance" ]; then
 		eval \"$_f\" \"$_iinstance\" \"$@\"
 	else
-		for instance in $CATALINA_GROUPS
-		do
+	for instance in $CATALINA_GROUPS
+	do
 			eval \"$_f\" \"$instance\" \"$@\"
-		done
+	done
 	fi
-} 
-#----- Execute The Requested Command -----------------------------------------
+}
+# ----- Execute The Requested Command -----------------------------------------
 if	[ "$1" = "debug" ] ; then
 	shift 
 	applyCmd "applyTo" "$INSTANCE" "debug $@"	

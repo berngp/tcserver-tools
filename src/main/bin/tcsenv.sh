@@ -70,7 +70,7 @@ fi
 
 #Extract information from the tcs-instance conf. properties file.
 if [ -r "$CATALINA_INSTANCE/tcsi.properties" ]; then
-	if [ $1 = 'stop' ]; then
+	if [ $1 = 'stop'   ] ; then
 		_OPTS=`grep -v '^[\s*#]' $CATALINA_INSTANCE/tcsi.properties | grep -v '.jmxremote.' | awk '{printf "-D%s ", $1}'` 
 	else
 		_OPTS=`grep -v '^[\s*#]' $CATALINA_INSTANCE/tcsi.properties | awk '{printf "-D%s ", $1}'` 
@@ -79,8 +79,11 @@ if [ -r "$CATALINA_INSTANCE/tcsi.properties" ]; then
 	#---------------------------
 	JVM_ROUTE=`grep -e '^[\s*jvmRoute\s*=]' $CATALINA_INSTANCE/tcsi.properties | sed 's/\s*jvmRoute\s*=\s*//g'` 
 	if [ -z "$JVM_ROUTE" ]; then
+		if [ -z "$JVM_ROUTE_GROUP" ]; then
+			JVM_ROUTE_GROUP="`( cd $CATALINA_GROUP ; pwd ) | sed 's/\//\./g' | sed 's/\.\(.*\)$/\1/'`"
+		fi
 		JVM_ROUTE=`echo "$CATALINA_INSTANCE" | sed 's/.*\/\(.*\)$/\1/'`
-		JAVA_OPTS="-DjvmRoute=$JVM_ROUTE $JAVA_OPTS"
+		JAVA_OPTS="-DjvmRoute=`hostname`.$JVM_ROUTE_GROUP.$JVM_ROUTE $JAVA_OPTS"
 	fi
 	export JAVA_OPTS
 fi

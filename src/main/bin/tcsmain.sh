@@ -122,6 +122,7 @@ if [ $have_tty -eq 1 ]; then
 fi
 
 cmd="$EXECUTABLE $@"
+
 echo $cmd 
 eval $cmd 
 exit $?
