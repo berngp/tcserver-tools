@@ -19,7 +19,7 @@
 #  Loads a an env.sh file that can override system variables, 
 #  It will look for them in 
 #   1) $CATALINA_BASE/bin/env.sh
-#   2) $CATALINA_INSTANCE/bin/env.sh
+#   2) $CATALINA_INSTANCE_HOME/bin/env.sh
 #   3) $PRGDIR/env.sh where PGRDIR is the home dir of this shell
 # -----------------------------------------------------------------------------
 echo "tcsenv.sh running...."
@@ -39,11 +39,11 @@ done
 # Get standard environment variables
 PRGDIR=`dirname "$PRG"`
 
-# Only set CATALINA_INSTANCE if not already set
+# Only set CATALINA_INSTANCE_HOME if not already set
 if   [ -x "$CATALINA_BASE/bin/env.sh" ] ; then
 	TCS_TOOLS_ENV_SH="$CATALINA_BASE/bin/env.sh"
-elif [ -f "$CATALINA_INSTANCE/bin/env.sh" ] ; then
-	TCS_TOOLS_ENV_SH="$CATALINA_INSTANCE/bin/env.sh"
+elif [ -f "$CATALINA_INSTANCE_HOME/bin/env.sh" ] ; then
+	TCS_TOOLS_ENV_SH="$CATALINA_INSTANCE_HOME/bin/env.sh"
 else 
 	TCS_TOOLS_ENV_SH="$PRGDIR/env.sh"
 fi
@@ -60,37 +60,38 @@ if [ -z "$CATALINA_HOME" ] ; then
 fi
 
 if [ -z "$CATALINA_OUT" ] ; then
-  export CATALINA_OUT="$CATALINA_INSTANCE"/logs/catalina.out
+  export CATALINA_OUT="$CATALINA_INSTANCE_HOME"/logs/catalina.out
 fi
 
 if [ -z "$CATALINA_TMPDIR" ] ; then
   # Define the java.io.tmpdir to use for Catalina
-  export CATALINA_TMPDIR="$CATALINA_INSTANCE"/temp
+  export CATALINA_TMPDIR="$CATALINA_INSTANCE_HOME"/temp
 fi
 #Setup the catalina.instance name for the JVM OPTS
-CATALINA_INSTANCE_D=`echo "$CATALINA_INSTANCE" | sed 's/.*\/\(.*\)$/\1/'`
-JAVA_OPTS="$JAVA_OPTS -Dcatalina.instance=$CATALINA_INSTANCE_D"
+export CATALINA_INSTANCE=`echo "$CATALINA_INSTANCE_HOME" | sed 's/.*\/\(.*\)$/\1/'`
+
+JAVA_OPTS="-Dcatalina.instance=$CATALINA_INSTANCE $JAVA_OPTS "
 #Extract information from the tcs-instance conf. properties file.
-if [ -r "$CATALINA_INSTANCE/tcsi.properties" ]; then
+if [ -r "$CATALINA_INSTANCE_HOME/tcsi.properties" ]; then
 	if [ $1 = 'stop'   ] ; then
-		_OPTS=`grep -v '^[\s*#]' $CATALINA_INSTANCE/tcsi.properties | grep -v '.jmxremote.' | awk '{printf "-D%s ", $1}'` 
+		_OPTS=`grep -v '^[\s*#]' $CATALINA_INSTANCE_HOME/tcsi.properties | grep -v '.jmxremote.' | awk '{printf "-D%s ", $1}'` 
 	else
-		_OPTS=`grep -v '^[\s*#]' $CATALINA_INSTANCE/tcsi.properties | awk '{printf "-D%s ", $1}'` 
+		_OPTS=`grep -v '^[\s*#]' $CATALINA_INSTANCE_HOME/tcsi.properties | awk '{printf "-D%s ", $1}'` 
 	fi
 	JAVA_OPTS="$JAVA_OPTS $_OPTS"
 	#---------------------------
-	JVM_ROUTE=`grep -e '^[\s*jvmRoute\s*=]' $CATALINA_INSTANCE/tcsi.properties | sed 's/\s*jvmRoute\s*=\s*//g'` 
+	JVM_ROUTE=`grep -e '^[\s*jvmRoute\s*=]' $CATALINA_INSTANCE_HOME/tcsi.properties | sed 's/\s*jvmRoute\s*=\s*//g'` 
 	if [ -z "$JVM_ROUTE" ]; then
 		if [ -z "$JVM_ROUTE_GROUP" ]; then
 			JVM_ROUTE_GROUP="`( cd $CATALINA_GROUP ; pwd ) | sed 's/\//\./g' | sed 's/\.\(.*\)$/\1/'`"
 		fi
-		JAVA_OPTS="-DjvmRoute=`hostname`.$JVM_ROUTE_GROUP.$CATALINA_INSTANCE_D $JAVA_OPTS"
+		JAVA_OPTS="-DjvmRoute=`hostname`.$JVM_ROUTE_GROUP.$CATALINA_INSTANCE $JAVA_OPTS"
 	fi
 	export JAVA_OPTS
 fi
 
 #Override PID
-export CATALINA_PID="$CATALINA_INSTANCE/pid"
+export CATALINA_PID="$CATALINA_INSTANCE_HOME/pid"
 
 
 

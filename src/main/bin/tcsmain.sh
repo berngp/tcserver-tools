@@ -64,18 +64,18 @@ fi
 
 # Get standard environment variables
 PRGDIR=`dirname "$PRG"`
-# Only set CATALINA_INSTANCE if not already set
-if [ -z "$CATALINA_INSTANCE" ] ; then
+# Only set CATALINA_INSTANCE_HOME if not already set
+if [ -z "$CATALINA_INSTANCE_HOME" ] ; then
 	if [ -d "$1" ] ; then 
-	 	export CATALINA_INSTANCE=`cd "$1" > /dev/null; pwd`
+	 	export CATALINA_INSTANCE_HOME=`cd "$1" > /dev/null; pwd`
 		shift
 	else
-		export CATALINA_INSTANCE=`cd "$PRGDIR/.." >/dev/null; pwd`
+		export CATALINA_INSTANCE_HOME=`cd "$PRGDIR/.." >/dev/null; pwd`
 	fi
 fi
 
 if [ -z "$CATALINA_BASE" ] ; then
-  export CATALINA_BASE="$CATALINA_INSTANCE"
+  export CATALINA_BASE="$CATALINA_INSTANCE_HOME"
 fi
 
 #Setup the ENV through tcsenv.sh
@@ -90,7 +90,6 @@ test ! -x "$TCS_ENV_EXECUTABLE" && (echo "Unable to find tcsenv.sh"; exit 1)
 # -----
 #------------------------------------------------------------------
 
-
 EXECUTABLE="$CATALINA_HOME/bin/catalina.sh"
 # Check that target executable exists
 if [ ! -x "$EXECUTABLE" ]; then
@@ -104,17 +103,13 @@ fi
 # Bugzilla 37848: only output this if we have a TTY
 if [ $have_tty -eq 1 ]; then
 	echo "CATALINA INSTANCE MANAGER...."
-	echo "Using CATALINA_INSTANCE:  $CATALINA_INSTANCE"
+	echo "Using CATALINA_INSTANCE_HOME:  $CATALINA_INSTANCE_HOME"
 	echo "Using CATALINA_BASE:      $CATALINA_BASE"
-	#echo "Using CATALINA_HOME:   	$CATALINA_HOME"
-	#echo "Using CATALINA_TMPDIR: 	$CATALINA_TMPDIR"
+	echo "Using CATALINA_HOME:   	$CATALINA_HOME"
+	echo "Using CATALINA_TMPDIR: 	$CATALINA_TMPDIR"
 	echo "Using CATALINA_OPTS:      $CATALINA_OPTS"
 	echo "Using JAVA_OPTS:          $JAVA_OPTS"
 	echo ""
-	#if [ "$1" = "debug" ] ; then
-	#   echo "Using JAVA_HOME:       $JAVA_HOME"
-	#   echo "Using JRE_HOME:        $JRE_HOME"
-	#fi
 	test -n "$CLASSPATH"		 && (echo "Using CLASSPATH:		$CLASSPATH")
 	if [ ! -z "$CATALINA_PID" ]; then
 	    echo "Using CATALINA_PID:    $CATALINA_PID"
